@@ -1,0 +1,45 @@
+
+
+CREATE COMPUTE MODULE postOperaciones_EjecutarOperacionAritmetica
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		DECLARE A, B, D DECIMAL;
+		DECLARE C CHARACTER;
+		DECLARE formatoMonto CHARACTER '##0.00';
+		------------------------------------------------	
+		SET A = InputRoot.JSON.Data.numero1;
+		SET B = InputRoot.JSON.Data.numero2;
+		SET C = InputRoot.JSON.Data.operador;
+		------------------------------------------------		
+		SET OutputRoot = InputRoot;
+		SET OutputRoot.JSON.Data = NULL;
+		------------------------------------------------
+		IF B = 0 AND C = '/' THEN
+			SET OutputRoot.JSON.Data.resultado = 'Revise la data enviada, no es posible realizar division entre cero';
+			RETURN TRUE;
+		END IF;
+		------------------------------------------------
+		IF C = '+' THEN
+			SET D = A + B;
+			SET OutputRoot.JSON.Data.resultado = CAST(D AS CHARACTER FORMAT formatoMonto);
+			RETURN TRUE;	
+		END IF;
+		IF C = '-' THEN
+			SET D = A - B;
+			SET OutputRoot.JSON.Data.resultado = CAST(D AS CHARACTER FORMAT formatoMonto);
+			RETURN TRUE;	
+		END IF;
+		IF C = '/' THEN
+			SET D = A / B;	
+			SET OutputRoot.JSON.Data.resultado = CAST(D AS CHARACTER FORMAT formatoMonto);
+			RETURN TRUE;
+		END IF;
+		IF C = '*' THEN
+			SET D = A * B;	
+			SET OutputRoot.JSON.Data.resultado = CAST(D AS CHARACTER FORMAT formatoMonto);
+			RETURN TRUE;
+		END IF;
+		------------------------------------------------
+		RETURN TRUE;
+	END;
+END MODULE;

@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: ace
+  description: Template for deploy IBM App Connect Enteprise
+  tags: ibmcom/ace
+labels:
+  template: ace
+  version: "1.0"
+  app: "${APPLICATION_NAME}"
+parameters:
+- description: ACE application name 
+  required: true
+  name: APPLICATION_NAME
+- description: Image Name
+  required: true
+  name: IMAGE_NAME
+objects:
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}"
+  spec:
+    replicas: 1
+    selector: 
+      template: ace
+      version: "1.0"
+      app: "${APPLICATION_NAME}"
+    template:
+      metadata:
+        labels: 
+          template: ace
+          version: "1.0"
+          app: "${APPLICATION_NAME}"
+      spec:
+        containers:
+        - name: ace
+          env: 
+          - name: LICENSE
+            value: accept
+          image: " "
+          imagePullPolicy: "Always"
+          ports:
+          - containerPort: 7600
+            protocol: TCP
+          - containerPort: 7800
+            protocol: TCP
+          - containerPort: 7843
+            protocol: TCP
+          - containerPort: 9483
+            protocol: TCP
+          livenessProbe: 
+            exec:
+              command: 
+              - chkacehealthy
+          readinessProbe: 
+            exec:
+              command: 
+              - chkaceready
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            privileged: false
+            capabilities:
+              add:
+              - SETPCAP
+              - AUDIT_WRITE
+              - CHOWN
+              - NET_RAW
+              - DAC_OVERRIDE
+              - FOWNER
+              - FSETID
+              - KILL
+              - SETUID
+              - SETGID
+              - NET_BIND_SERVICE
+              - SYS_CHROOT
+              - SETFCAP
+    triggers: 
+    - type: ImageChange
+      imageChangeParams:
+        containerNames:
+        - ace
+        automatic: true
+        from: 
+          kind: ImageStreamTag
+          name: "${IMAGE_NAME}"
+    - type: ConfigChange
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: ${APPLICATION_NAME}
+  spec: 
+    type: ClusterIP
+    ports:
+    - name: 7600-tcp
+      port: 7600
+      protocol: TCP
+      targetPort: 7600
+    - name: 7800-tcp
+      port: 7800
+      protocol: TCP
+      targetPort: 7800
+    - name: 7843-tcp
+      port: 7843
+      protocol: TCP
+      targetPort: 7843
+    - name: 9843-tcp
+      port: 9843
+      protocol: TCP
+      targetPort: 9843
+- kind: Route
+  apiVersion: v1
+  metadata: 
+    name: ${APPLICATION_NAME}
+  spec: 
+    port:
+      targetPort: 7800-tcp
+    to:
+      kind: Service
+      name: "${APPLICATION_NAME}"

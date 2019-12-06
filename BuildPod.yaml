@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels: 
+    app: jenkins-ephemeral
+spec:
+  serviceAccountName: jenkins
+  volumes: 
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+  containers:
+  - name: origin
+    image: openshift/origin-cli
+    command: 
+    - cat
+    tty: true
+  - name: docker
+    image: docker:18.06.1-ce
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock
+    securityContext:
+      allowPrivilegeEscalation: true
+      privileged: true
+  - name: ace
+    image: ibmcom/ace
+    command: 
+    - "/bin/bash"
+    - "-c"
+    args: 
+    - cat
+    tty: true
+    env:
+    - name: LICENSE
+      value: "accept"
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1000
+      privileged: false
+      capabilities:
+        add:
+        - SETPCAP
+        - AUDIT_WRITE
+        - CHOWN
+        - NET_RAW
+        - DAC_OVERRIDE
+        - FOWNER
+        - FSETID
+        - KILL
+        - SETUID
+        - SETGID
+        - NET_BIND_SERVICE
+        - SYS_CHROOT
+        - SETFCAP
